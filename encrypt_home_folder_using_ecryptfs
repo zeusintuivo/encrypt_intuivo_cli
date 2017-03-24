@@ -1,0 +1,628 @@
+#!/bin/bash
+#
+# @author Jesus Alcaraz <jesusalc@gmail.com>
+#
+#
+
+
+
+
+########     ###    ########     ###    ##     ##  ######
+##     ##   ## ##   ##     ##   ## ##   ###   ### ##    ##
+##     ##  ##   ##  ##     ##  ##   ##  #### #### ##
+########  ##     ## ########  ##     ## ## ### ##  ######
+##        ######### ##   ##   ######### ##     ##       ##
+##        ##     ## ##    ##  ##     ## ##     ## ##    ##
+##        ##     ## ##     ## ##     ## ##     ##  ######
+
+
+
+
+load_colors()
+{
+    green="\\033[38;5;2m"
+    red="\\033[38;5;1m"
+    yellow220="\\033[38;5;220m"
+    yellow214="\\033[38;5;214m"
+
+    gray238="\\033[38;5;238m"
+    gray242="\\033[38;5;242m"
+    orange209="\\033[38;5;209m"
+    orange208="\\033[38;5;208m"
+    white15="\\033[38;5;15"
+    reset="\\e[0m"
+    blue238="\\033[38;5;238m"
+    blue23="\\033[38;5;23m"
+    blue30="\\033[38;5;30m"
+    lightblue="\\033[38;5;123m"
+    lightpurple="\\033[38;5;93m"
+    lightpink="\\033[1;204m"
+    lightyellow="\\033[38;5;227m"
+    lightgreen="\\033[38;5;83m"
+} # end function load_colors
+load_colors
+
+SEDS_CHUNK="
+    escape_double_quotes() {
+        sed 's/\\\"/\\\\\\\"/g'
+    }
+    escape_backslashes() {
+        sed 's/\\\\/\\\\\\\\/g'
+    }
+    escape_money() {
+        sed 's/\\\$/\\\\\\\$/g'
+    }
+    escape_sequence() {
+        escape_backslashes | escape_double_quotes | escape_money
+    }
+
+"
+# REF: zenity http://manpages.ubuntu.com/manpages/xenial/man1/zenity.1.html
+SAYSTUFF_CHUNK="
+    _notify() {
+        local MSG=\"\${@}\"
+        echo -e \" \"
+        echo -e \"${orange208} \${MSG} ${reset}\"
+        echo -e \" \"
+        zenity --info --title=\"Mr.Encrypter\" --text=\"\${MSG}\" 2> /dev/null  # Remove Gtk-Message: GtkDialog mapped without a transient parent. This is discouraged
+
+    }
+    _mininfo() {
+        echo -e \"${blue23} • ${blue30} \${@}  ${reset} \"
+    }
+    _miniwarning() {
+        echo -e \" \"
+        echo -e \" ${yellow214} WARNING! \${@} ${reset}\"
+        echo -e \" \"
+    }
+    _info() {
+        local MSG=\"\${@}\"
+        _mininfo \"\"\"\${MSG}\"\"\"
+        zenity --info --title=\"Mr.Encrypter\" --text \"\${MSG}\" 2> /dev/null   # Remove Gtk-Message: GtkDialog mapped without a transient parent. This is discouraged
+    }
+    _subinfo() {
+        echo -e \" \"
+        echo -e \"${lightpurple}+---${lightyellow}  \${@}  ${reset} \"
+        echo -e \" \"
+    }
+    _error_kill() {
+        local MSG=\"\${@}\"
+        echo -e \" \"
+        echo -e \" ${red} ERROR! ${reset} \${MSG} ${red}! ${reset}\"
+        echo -e \" ${orange208} Killing the script ${reset}\"
+        echo -e \" \"
+        zenity --error  --title=\"Mr.Encrypter\"  --text=\" \${MSG} ...Killing the script \" 2> /dev/null  # Remove Gtk-Message: GtkDialog mapped without a transient parent. This is discouraged
+        exit 130
+    }
+
+"
+
+_mininfo Checking if zenity exists
+if ! command -v zenity >/dev/null 2>&1; then
+{
+    _miniwarning Installing zenity
+    sudo apt-get install zenity -y >dev>null 2>&1  # suppress stdln and errln output
+}
+fi
+
+eval """${SEDS_CHUNK}"""
+eval """${SAYSTUFF_CHUNK}"""
+
+ROOT_CHECK_CHUNK="
+    _mininfo Checking for Elevated Root Permisions
+    [ \"\$EUID\" -ne 0 ] &&  _error_kill Please run as root
+
+    _mininfo Checking if you are root
+    WHOWHO=\$(whoami)
+    [[ \"\${WHOWHO}\" != \"root\" ]] && _error_kill Please \
+    run as root: Whoami says you are: \$WHOWHO
+
+"
+SEDS_CHUNK_ESCAPED=$(echo """${SEDS_CHUNK}""" | escape_sequence )
+SAYSTUFF_CHUNK_ESCAPED=$(echo """${SAYSTUFF_CHUNK}""" | escape_sequence )
+
+_notify Mr.Encrypter will prepare your box to encrypt your home folder.
+
+check_if_user_exists(){
+    local ${TARGET_USER}="${@}"
+    _subinfo param: ${TARGET_USER}
+    _subinfo Checking if ${TARGET_USER} exists ${gray242}
+    local LIST_ALL_USERS=$(cut -d: -f1 /etc/passwd) # REF: http://askubuntu.com/questions/410244/a-command-to-list-all-users-and-how-to-add-delete-modify-users
+    local USERID=$(id -u ${TARGET_USER})
+    # Alternative to check getent passwd $user  > /dev/null
+    # Alternative to check getent passwd mongodb  > /dev/null
+    THISSCRIPTNAME=`basename "$0"`
+
+    if [ -z "${USERID}" ] ; then
+    {
+        _error_kill "The user '${TARGET_USER}'
+    you provided does not exist
+
+    ${orange208}  Please use like:
+
+        $THISSCRIPTNAME username_here
+
+    Sample:
+
+        $THISSCRIPTNAME jesus      <-- This will work on the jesus folder
+    ${reset}"
+        return 1
+    }
+    fi
+    return 0
+}
+
+TARGET_USER="vagrant"
+check_params() {
+    eval """${ROOT_CHECK_CHUNK}"""
+    TARGET_USER="${1}"
+    _mininfo Checking user "${TARGET_USER}" Parameter
+    if [ -z "${TARGET_USER}" ] ;  then
+        SECOND_CHANGE_USER=$(zenity  --title="Mr.Encrypter"  --entry --text="You did not provide a user name. Write one here")
+        if [ ! -z "${SECOND_CHANGE_USER}" ] ;  then
+            TARGET_USER="${SECOND_CHANGE_USER}"
+        else
+            TARGET_USER="vagrant"
+        fi
+    fi
+
+    check_if_user_exists "${TARGET_USER}"
+
+    echo -e " ${lightpurple}+---${lightyellow} ${TARGET_USER} homefolder"
+    if [ ! -d /home/${TARGET_USER} ] ; then
+    {
+        _error_kill "The user you provided does not have a \
+        home folder, you need to login at least once for this folder \
+        to be created. ${reset}"
+    }
+    fi
+
+} # end function check_params
+check_params $*
+
+
+
+
+
+
+
+
+
+
+
+########  ########  ########
+##     ## ##     ## ##
+##     ## ##     ## ##
+########  ########  ######
+##        ##   ##   ##
+##        ##    ##  ##
+##        ##     ## ########
+
+
+
+
+
+
+
+#### ##    ##  ######  ########    ###    ##       ##
+ ##  ###   ## ##    ##    ##      ## ##   ##       ##
+ ##  ####  ## ##          ##     ##   ##  ##       ##
+ ##  ## ## ##  ######     ##    ##     ## ##       ##
+ ##  ##  ####       ##    ##    ######### ##       ##
+ ##  ##   ### ##    ##    ##    ##     ## ##       ##
+#### ##    ##  ######     ##    ##     ## ######## ########
+
+
+
+
+
+
+
+
+
+
+
+#pre_install() {
+echo -e " ${lightgreen} Pre Install ${reset}"
+
+
+
+create_new_user(){
+    local MRNEWUSER="${@}"
+    _mininfo Creating a new temp user
+    _mininfo Checking is "${MRNEWUSER}" exists
+    local LIST_ALL_USERS=$(cut -d: -f1 /etc/passwd) # REF: http://askubuntu.com/questions/410244/a-command-to-list-all-users-and-how-to-add-delete-modify-users
+    local USERID=$(id -u "${MRNEWUSER}")
+    # Alternative to check getent passwd $user  > /dev/null
+    # Alternative to check getent passwd mongodb  > /dev/null
+    if [ -z "${USERID}" ] ; then
+    {
+        _subinfo USERADD "${MRNEWUSER}" ${gray242}
+        # sudo adduser mongodb
+        # Alternative REF: http://askubuntu.com/questions/94060/run-adduser-non-interactively
+        # sudo adduser --disabled-password --gecos "Mr.Mongo,IT Room,+49 123 123 1234,+49 123 123 1235,+49 123 123 1236" mongodb
+        ( sudo adduser "${MRNEWUSER}" <<- INFO
+pass
+pass
+Mr.Encrypter
+IT Room
++49 123 123 1234
++49 123 123 1235
++49 123 123 1236
+y
+INFO
+    )>/dev/null 2>&1;
+
+        _subinfo Add user "${MRNEWUSER}" to sudoers list
+
+        # REF: https://www.digitalocean.com/community/tutorials/how-to-create-a-sudo-user-on-ubuntu-quickstart
+        sudo usermod -aG sudo "${MRNEWUSER}"
+    }
+    fi
+
+}
+
+create_new_user "mrencrypter"
+
+
+
+
+
+
+
+
+
+
+_mininfo Checking if ecryptfs-utils exists
+if ! command -v ecryptfs-migrate-home >/dev/null 2>&1; then
+{
+    _miniwarning Installing ecryptfs-utils & cryptsetup
+    sudo apt-get install ecryptfs-utils cryptsetup -y >dev>null 2>&1;  # suppress stdln and errln output
+}
+fi
+
+
+
+
+
+#} #end function pre_install
+#pre_install
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######## ##     ## ########  ######  ##     ## ######## ########
+##        ##   ##  ##       ##    ## ##     ##    ##    ##
+##         ## ##   ##       ##       ##     ##    ##    ##
+######      ###    ######   ##       ##     ##    ##    ######
+##         ## ##   ##       ##       ##     ##    ##    ##
+##        ##   ##  ##       ##    ## ##     ##    ##    ##
+######## ##     ## ########  ######   #######     ##    ########
+
+
+
+
+
+
+
+
+
+
+
+
+echo -e " ${lightgreen} Execute ${reset}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#_mininfo Log out the current user
+#nohup gnome-session-save --force-logout
+#wait
+#sudo pkill -9 -u ${TARGET_USER}
+#wait
+
+
+
+
+
+_mininfo Testing the new mrencrypter login
+sudo -u mrencrypter -H bash << ENCRYPTEREOF
+    echo -e "${gray242}  WHERE AM I?:"
+    pwd
+    ls    #su - mrencrypter << ENCRYPTEREOF
+    touch /home/mrencrypter/this_is_what_i_see
+    chown -R mrencrypter:mrencrypter /home/mrencrypter/this_is_what_i_see
+    chmod +x /home/mrencrypter/this_is_what_i_see
+
+    echo "#!/bin/bash
+#
+# @author Jesus Alcaraz <jesusalc@gmail.com>
+#
+#
+"  > /home/mrencrypter/this_is_what_i_see
+    echo -e """${SAYSTUFF_CHUNK_ESCAPED}""" >> /home/mrencrypter/this_is_what_i_see
+
+    . /home/mrencrypter/this_is_what_i_see
+    #_mininfo Install do stuff as mrencrypter $
+    # As note this would not work
+    # zenity --info --text="Login new mrencrypter "
+    # wait
+    _mininfo Test that we are the new mrencrypter user
+    echo -e "${gray242}  HOME:$HOME"
+    pwd
+    cd ~
+    pwd
+    cd
+    pwd
+    ls -la
+
+    #_mininfo Test now go to root from mrencrypter
+#sudo -u root -H bash << ROOTEEOF
+#su - root bash << ROOTEEOF
+    # This will work good
+    # REF: http://manpages.ubuntu.com/manpages/xenial/man1/zenity.1.html
+    #pwd
+    #cd
+    #pwd
+    #_mininfo ! This was posted as ROOT called inside of mrencrypter
+
+#ROOTEEOF
+    rm /home/mrencrypter/this_is_what_i_see
+ENCRYPTEREOF
+
+
+
+
+# Create Start Script
+sudo mkdir -p /home/mrencrypter/.config/autostart/
+sudo chown -R mrencrypter:mrencrypter /home/mrencrypter/.config
+sudo touch /home/mrencrypter/.config/autostart/encrypt_home_for_${TARGET_USER}.desktop
+sudo chmod +x /home/mrencrypter/.config/autostart/encrypt_home_for_${TARGET_USER}.desktop
+sudo chown -R mrencrypter:mrencrypter /home/mrencrypter/.config/autostart/encrypt_home_for_${TARGET_USER}.desktop
+
+# REF: http://askubuntu.com/questions/118822/how-to-launch-application-as-root-from-unity-launcher
+sudo echo "[Desktop Entry]
+Type=Application
+Exec=gksudo -k -u root /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Encrypt Home for ${TARGET_USER}
+Name=Encrypt Home for ${TARGET_USER}
+Comment[en_US]=
+Comment=
+
+" > /home/mrencrypter/.config/autostart/encrypt_home_for_${TARGET_USER}.desktop
+
+# Create encrypter script
+sudo touch /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+sudo chmod +x /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+sudo chown -R mrencrypter:mrencrypter /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+
+
+
+sudo echo "#!/bin/bash
+#
+# @author Jesus Alcaraz <jesusalc@gmail.com>
+#
+#
+dato=\$(date) ; echo \"time start script:\$dato \" > time.log
+$SAYSTUFF_CHUNK
+
+_notify This script will encrypt home folder for ${TARGET_USER}
+
+check_params() {
+${ROOT_CHECK_CHUNK}
+} # end function check_params
+check_params \$*
+
+
+backup_${TARGET_USER}() {
+    dato=\$(date) ; echo \" +-- time start zip:\$dato \" >> time.log
+    _info Backup home directory for ${TARGET_USER}
+    sudo mkdir -p /_/user-backups
+    sudo chown -R ${TARGET_USER}:${TARGET_USER} /_/user-backups
+    #sudo tar jcvf /_/user-backups/${TARGET_USER}-home-directory-backup.tar.bz2 /home/${TARGET_USER} | split -b 670MB - /_/user-backups/
+    sudo zip -vy -s 670m /_/user-backups/${TARGET_USER}-home-directory-backup.zip -r /home/${TARGET_USER}
+    (( \$? != 0 )) && _error_kill Back homedir for ${TARGET_USER} did not complete correctly
+    wait
+    dato=\$(date) ; echo \" +-- time end zip:\$dato \" >> time.log
+}
+backup_${TARGET_USER}
+
+
+create_self_executing_script_to_delete_mrencrypter() {
+    sudo mkdir -p /home/${TARGET_USER}/.config/autostart/
+    sudo touch /home/${TARGET_USER}/.config/autostart/remove_mrencrypter.desktop
+    sudo chown -R ${TARGET_USER}:${TARGET_USER} /home/${TARGET_USER}/.config/autostart/remove_mrencrypter.desktop
+
+
+    sudo echo \"[Desktop Entry]
+Type=Application
+Exec=gksudo -k -u root /home/${TARGET_USER}/remove_mrencrypter.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Remove user mrencrypter
+Name=Remove user mrencrypter
+Comment[en_US]=Remove user mrencrypter
+Comment=Remove user mrencrypter
+    \" > /home/${TARGET_USER}/.config/autostart/remove_mrencrypter.desktop
+
+
+    # Create remove mrencrypter script
+    sudo touch /home/${TARGET_USER}/remove_mrencrypter.sh
+    sudo chmod +x /home/${TARGET_USER}/remove_mrencrypter.sh
+    sudo chown -R ${TARGET_USER}:${TARGET_USER} /home/${TARGET_USER}/remove_mrencrypter.sh
+    sudo echo \"#!/bin/bash
+#
+# @author Jesus Alcaraz <jesusalc@gmail.com>
+#
+#
+$SAYSTUFF_CHUNK_ESCAPED
+
+_notify This script destroy the created user Mr.Encrypter out of your system
+
+_info Logout new user mrencrypter
+sudo pkill -9 -u mrencrypter
+wait
+! pkill -9 -u mrencrypter && _mininfo nothing
+(( \\\$? != 0 )) && _error_kill Failed logging mrencrypter. You will have to delete it manually... Sorry!!
+
+_info Deleting user mrencrypter with its home folder
+# REF: http://askubuntu.com/questions/12180/logging-out-other-users-from-the-command-line
+# REF: http://www.tecmint.com/delete-remove-a-user-account-with-home-directory-in-linux/
+( command -v deluser >/dev/null 2>&1; ) && [ -d  /home/mrencrypter/ ] && deluser --remove-home mrencrypter
+( command -v userdel >/dev/null 2>&1; ) && [ -d  /home/mrencrypter/ ] && userdel --remove mrencrypter
+[ ! -d  /home/mrencrypter/ ] && _mininfo Folder and user mrencrypter removed
+(( \\\$? != 0 )) && _error_kill Failed to remove mrencrypter user and home folder
+
+
+_notify Self remove these scripts
+nohup rm /home/mrencrypter/.config/autostart/encrypt_home_for_${TARGET_USER}.desktop
+nohup rm /home/${TARGET_USER}/remove_mrencrypter.sh
+
+
+\" > /home/${TARGET_USER}/remove_mrencrypter.sh
+
+}
+create_self_executing_script_to_delete_mrencrypter
+
+
+encrypt_homedir_and_swap_for_${TARGET_USER}_now() {
+    dato=\$(date) ; echo \" +-- time start encrypt:\$dato \" >> time.log
+    # REF: https://www.howtogeek.com/116032/how-to-encrypt-your-home-folder-after-installing-ubuntu/
+    _info Killing all processes for ${TARGET_USER}.
+    sudo pkill -9 -u ${TARGET_USER}
+    wait
+
+    _info Encrypting home folder for: ${TARGET_USER} ...This might take a while
+    sudo ecryptfs-migrate-home -u ${TARGET_USER}
+    (( \$? != 0 )) && _error_kill Encrypting homedir for ${TARGET_USER} did not complete correctly
+
+    _info Encrypting home swap folder ...This might take a while
+    sudo ecryptfs-setup-swap
+    (( \$? != 0 )) && _error_kill Encrypting swap did not complete correctly
+    dato=\$(date) ; echo \" +-- time end encrypt:\$dato \" >> time.log
+
+}
+encrypt_homedir_and_swap_for_${TARGET_USER}_now
+
+check_if_home_for_${TARGET_USER}_is_encrypted() {
+    # REF: http://askubuntu.com/questions/146511/how-to-check-if-your-home-folder-and-swap-partition-are-encrypted-using-terminal
+    _info Checking if home folder for  ${TARGET_USER} is encrypted
+    [ ! -d /home/${TARGET_USER}/.ecryptfs/ ] && _error_kill Encrypted folder was not found
+}
+check_if_home_for_${TARGET_USER}_is_encrypted
+
+check_if_swap_is_encrypted() {
+    # REF: http://askubuntu.com/questions/146511/how-to-check-if-your-home-folder-and-swap-partition-are-encrypted-using-terminal
+    _info Checking if swap is encrypted
+    ( ! sudo blkid | grep swap | grep cryptswap ) && _error_kill Encrypted swap failed
+}
+check_if_swap_is_encrypted
+
+logout_current_user_mrencrypter() {
+    dato=\$(date) ; echo \"time end script:\$dato \" >> time.log
+    _notify You will be log out of this user. Then DO NOT TURN OFF YOUR BOX, Login to your user ${TARGET_USER} for encryption to finish
+    nohup gnome-session-save --force-logout
+    wait
+    #sudo pkill -9 -u ${TARGET_USER}
+    wait
+}
+logout_current_user_mrencrypter
+
+
+" > /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+#nohup /bin/bash /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh
+
+function logout() {
+    # REF http://askubuntu.com/questions/460993/gnome-session-quit-to-logout-does-not-work-when-run-as-root-with-sudo
+    local USERNAME
+    export USERNAMES=( )
+    while [ -n "$1" ]; do case "$1" in
+        -* ) break ;;
+        *) USERNAMES+=( "$1" ); shift ;;
+    esac; done
+
+    for USERNAME in "${USERNAMES[@]}"; do
+        local SESSION_PID=$(pgrep -fu "$USERNAME" gnome-session|head -1)
+        if [ -n "$SESSION_PID" ]; then
+            (
+                sudo -u "$USERNAME" cat "/proc/$SESSION_PID/environ" | xargs -0 -n 1 echo export
+                echo "gnome-session-quit --logout $@"
+            ) | sudo -u "$USERNAME" sh -;
+        fi
+    done
+}
+
+_notify You will be logged OUT . Please then log in to Mr.Encrypter User:mrencrypter with password: \'pass.\' Then execute /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh from terminal
+
+# Failed because temrinal has not Enviroment vars that are needed for gnome scripst to run. It works if you use sudo -E  the -E  passes the user Environment vars
+# it also works if you do  sudo -E -u jesus gnome-session-quit
+# to note the difference you have to test
+# sudo -u jesus env
+# vs
+# sudo -E -u jesus env
+# where
+# the -E gives more data regarding gnome working environment among other things
+#( command -v logout >/dev/null 2>&1; ) && nohup sudo bash logout </dev/null &>/dev/null & # Ignore --nohup: ignoring input and appending output to 'nohup.out'
+#( command -v gnome-session-save >/dev/null 2>&1; ) && nohup gnome-session-save --force-logout #</dev/null &>/dev/null & # Ignore --nohup: ignoring input and appending output to 'nohup.out'
+#( command -v gnome-session-quit >/dev/null 2>&1; ) && nohup gnome-session-quit --logout #</dev/null &>/dev/null & # Ignore --nohup: ignoring input and appending output to 'nohup.out'
+#
+# another option is
+# sudo systemctl reboot
+#
+#logout "${TARGET_USER}"
+
+USERPROCESS_ID=$(pgrep -fu "${TARGET_USER}" gnome-session | head -1)   # Get the process id of the user
+USER_ENVS=$(sudo -E -u "$TARGET_USER" env)
+while read -r ONE_ENV; do
+{
+    if [ ! -z "${ONE_ENV}" ] ; then
+    {
+        export "${ONE_ENV}"
+    }
+    fi
+}
+done <<< "USER_ENVS"
+#sudo -u "$TARGET_USER" cat "/proc/$USERPROCESS_ID/environ" | xargs -0 -n 1 echo export  # Get a list of the environment variables  and export them to
+( command -v gnome-session-save >/dev/null 2>&1; ) && gnome-session-save --force-logout "$TARGET_USER"
+( command -v gnome-session-quit >/dev/null 2>&1; ) && gnome-session-quit --logout --force "$TARGET_USER"
+
+
+
+echo " "
+echo -e " ${orange208} end ${red}:${lightyellow}D  ${reset}"
+echo " "
+
+######## ##    ## ########
+##       ###   ## ##     ##
+##       ####  ## ##     ##
+######   ## ## ## ##     ##
+##       ##  #### ##     ##
+##       ##   ### ##     ##
+######## ##    ## ########
+
+
+

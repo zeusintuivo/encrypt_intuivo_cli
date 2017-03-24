@@ -1,0 +1,340 @@
+#!/bin/bash
+#
+# @author Zeus Intuivo <zeus@intuivo.com>
+#
+#
+
+
+
+
+########     ###    ########     ###    ##     ##  ######
+##     ##   ## ##   ##     ##   ## ##   ###   ### ##    ##
+##     ##  ##   ##  ##     ##  ##   ##  #### #### ##
+########  ##     ## ########  ##     ## ## ### ##  ######
+##        ######### ##   ##   ######### ##     ##       ##
+##        ##     ## ##    ##  ##     ## ##     ## ##    ##
+##        ##     ## ##     ## ##     ## ##     ##  ######
+
+
+
+
+load_colors()
+{
+    green="\\033[38;5;2m"
+    red="\\033[38;5;1m"
+    yellow220="\\033[38;5;220m"
+    yellow214="\\033[38;5;214m"
+
+    gray238="\\033[38;5;238m"
+    gray242="\\033[38;5;242m"
+    orange209="\\033[38;5;209m"
+    orange208="\\033[38;5;208m"
+    white15="\\033[38;5;15"
+    reset=`tput sgr0`
+    blue238="\\033[38;5;238m"
+    blue23="\\033[38;5;23m"
+    blue30="\\033[38;5;30m"
+    lightblue="\\033[38;5;123m"
+    lightpurple="\\033[38;5;93m"
+    lightpink=$(echo -e "\\033[1;204m")
+    lightyellow=$(echo -e "\\033[38;5;227m")
+    lightgreen=$(echo -e "\\033[38;5;83m")
+} # end function load_colors
+load_colors
+
+check_params(){
+    echo -e " "
+    echo -e "${orange208} This tests creating new user, and
+login as the new user and logout install ${reset}"
+    echo -e " "
+
+    echo -e "${blue23} • ${blue30} Checking for Elevated \
+    Root Permisions  ${reset} "
+    if [ "$EUID" -ne 0 ] ;  then
+    {
+        echo -e " "
+        echo -e " ${red} ERROR! Please run as root ${reset}"
+        echo -e " "
+        exit 130
+    }
+    fi
+
+    WHOWHO=$(whoami)
+    echo -e "${blue23} • ${blue30} Checking if you are root  ${reset}"
+    if [[ "${WHOWHO}" != "root" ]] ;  then
+    {
+        echo -e " "
+        echo -e " ${red} ERROR! Please run as root: Who am
+    i says you are: $WHOWHO ${reset}"
+        echo -e " "
+        exit 130
+    }
+    fi
+
+
+
+
+    echo -e "${blue23} • ${blue30} Checking user Parameter "
+    TARGET_USER="vagrant"
+    if [ ! -z "${1}" ] ;  then
+        TARGET_USER="${1}"
+    fi
+    echo -e " ${lightpurple}+---${lightyellow} param: $TARGET_USER ${reset}"
+    echo -e " ${lightpurple}+---${lightyellow} Checking \
+    if $TARGET_USER exists ${gray242}"
+    LIST_ALL_USERS=$(cut -d: -f1 /etc/passwd) # REF: http://askubuntu.com/questions/410244/a-command-to-list-all-users-and-how-to-add-delete-modify-users
+    USERID=$(id -u ${TARGET_USER})
+    # Alternative to check getent passwd $user  > /dev/null
+    # Alternative to check getent passwd mongodb  > /dev/null
+    THISSCRIPTNAME=`basename "$0"`
+
+    if [ -z "${USERID}" ] ; then
+    {
+        echo -e "
+    ${red}  ERROR! The user '$TARGET_USER'
+    you provided does not exist
+
+    ${orange208}  Please use like:
+
+        $THISSCRIPTNAME username_here
+
+    Sample:
+
+        $THISSCRIPTNAME jesus      <-- This will work on the jesus folder
+    ${reset}"
+        exit 130
+    }
+    fi
+
+
+    echo -e " ${lightpurple}+---${lightyellow} $TARGET_USER homefolder"
+    if [ ! -d /home/$TARGET_USER ] ; then
+    {
+        echo -e " "
+        echo -e "${red} ERROR! The user you provided does not have a \
+        home folder, you need to login at least once for this folder \
+        to be created. ${reset}"
+        echo -e " ${reset} "
+        exit 130
+    }
+    fi
+
+} # end function check_params
+check_params $*
+
+
+
+
+########  ########  ########
+##     ## ##     ## ##
+##     ## ##     ## ##
+########  ########  ######
+##        ##   ##   ##
+##        ##    ##  ##
+##        ##     ## ########
+
+
+
+
+
+
+
+#### ##    ##  ######  ########    ###    ##       ##
+ ##  ###   ## ##    ##    ##      ## ##   ##       ##
+ ##  ####  ## ##          ##     ##   ##  ##       ##
+ ##  ## ## ##  ######     ##    ##     ## ##       ##
+ ##  ##  ####       ##    ##    ######### ##       ##
+ ##  ##   ### ##    ##    ##    ##     ## ##       ##
+#### ##    ##  ######     ##    ##     ## ######## ########
+
+
+
+
+
+#pre_install(){
+
+echo -e " ${lightgreen} Pre Install ${reset}"
+echo -e " ${lightgreen} Pre Install ${reset}"
+echo -e " ${lightgreen} Pre Install ${reset}"
+
+
+zenity --info --text="Here we are doing something - Like \
+sudo apt-get install ecryptfs-utils cryptsetup -y"
+
+
+
+
+
+echo -e "${blue23} • ${blue30} Creating a new temp user  ${reset}"
+echo -e "${blue23} • ${blue30} Checking is encryteruser exists  ${gray242}"
+LIST_ALL_USERS=$(cut -d: -f1 /etc/passwd) # REF: http://askubuntu.com/questions/410244/a-command-to-list-all-users-and-how-to-add-delete-modify-users
+USERID=$(id -u encryteruser)
+# Alternative to check getent passwd $user  > /dev/null
+# Alternative to check getent passwd mongodb  > /dev/null
+if [ -z "${USERID}" ] ; then
+{
+    echo -e " ${lightpurple}+---${lightyellow} USERADD \
+    encryteruser  ${gray242}"
+    # sudo adduser mongodb
+    # Alternative REF: http://askubuntu.com/questions/94060/run-adduser-non-interactively
+    # sudo adduser --disabled-password --gecos "Mr.Mongo,IT Room,+49 123 123 1234,+49 123 123 1235,+49 123 123 1236" mongodb
+    ( sudo adduser encryteruser <<- INFO
+pass
+pass
+Mr.Encrypter
+IT Room
++49 123 123 1234
++49 123 123 1235
++49 123 123 1236
+y
+INFO
+)>/dev/null 2>&1;
+    echo -e "
+${lightpurple} +---${lightyellow} Add user encryteruser->sudoers ${reset}"
+    sudo usermod -aG sudo encryteruser
+}
+fi
+
+
+
+
+
+
+echo -e "${blue23} • ${blue30} Checking if zenity exists  ${reset}"
+if ! command -v zenity >/dev/null 2>&1; then
+{
+    echo -e " "
+    echo -e " ${yellow214} WARNING! Installing zenity ${reset}"
+    sudo apt-get install zenity -y >dev>null 2>&1  # suppress stdln and errln output
+    echo -e " "
+}
+fi
+
+
+
+
+
+echo -e "${blue23} • ${blue30} Checking if ecryptfs-utils exists  ${reset}"
+if ! command -v ecryptfs-migrate-home >/dev/null 2>&1; then
+{
+    echo -e " "
+    echo -e " ${yellow214} WARNING! Installing ecryptfs-utils \
+    cryptsetup ${reset}"
+    sudo apt-get install ecryptfs-utils cryptsetup -y >dev>null 2>&1;  # suppress stdln and errln output
+    echo -e " "
+}
+fi
+
+
+
+
+
+#} #end function pre_install
+#pre_install
+
+######## ##     ## ########  ######  ##     ## ######## ########
+##        ##   ##  ##       ##    ## ##     ##    ##    ##
+##         ## ##   ##       ##       ##     ##    ##    ##
+######      ###    ######   ##       ##     ##    ##    ######
+##         ## ##   ##       ##       ##     ##    ##    ##
+##        ##   ##  ##       ##    ## ##     ##    ##    ##
+######## ##     ## ########  ######   #######     ##    ########
+
+
+
+
+
+
+
+
+echo -e " ${lightgreen} Execute ${reset}"
+echo -e " ${lightgreen} Execute ${reset}"
+echo -e " ${lightgreen} Execute ${reset}"
+
+
+
+echo -e "${blue23} • ${blue30} Log out the current user  ${reset}"
+#nohup gnome-session-save --force-logout
+#wait
+#sudo pkill -9 -u $USER_TO_ENCRYPT_HOME_FOLDER
+#wait
+
+
+
+
+
+echo -e "${blue23} • ${blue30} Testing the new encryteruser login ${reset}"
+sudo -u encryteruser -H bash << ENCRYPTEREOF
+#su - encryteruser << ENCRYPTEREOF
+    echo -e "${blue23} • ${blue30} Install do stuff as encryteruser ${reset}"
+    # As note this would not work
+    # zenity --info --text="Login new encryteruser "
+    # wait
+    echo -e "${blue23} • ${blue30} Test that we are the new user ${reset}"
+    echo -e " ${gray242}  ®HOME:$HOME"
+    pwd
+    cd ~
+    pwd
+    cd
+    pwd
+    ls -la
+
+    echo -e "${blue23} • ${blue30} Test now go to root from encryteruser ${reset}"
+sudo -u root -H bash << ROOTEEOF
+#su - root bash << ROOTEEOF
+    # This will work good
+    zenity --info --text="Hello from root called from inside of encryteruser  "
+    echo -e "${blue23} • ${blue30} Test that we are the root  ${reset}"
+    echo -e " ${gray238}   ®HOME:$HOME"
+    pwd
+    cd
+    pwd
+    echo -e "  ${orange208}  ! this is posted as ROOT called inside of encryteruser ${reset}"
+ROOTEEOF
+    echo -e "  ${orange208}  * this is posted as encryteruser back out ${reset}"
+
+ENCRYPTEREOF
+
+
+
+
+
+zenity --info --text="Logout new user "
+wait
+echo -e "${blue23} • ${blue30} Log out encryteruser ${reset}"
+sudo pkill -9 -u encryteruser
+
+
+echo -e " ${orange208} Clean up ${reset}"
+echo -e "${blue23} • ${blue30} Delete the user ${reset}"
+echo -e "${blue23} • ${blue30} Find all procecsss \
+from the encryteruser ${gray242}"
+pgrep -u encryteruser
+ps -f --pid $(pgrep -u encryteruser)
+killall -9 -u encryteruser
+
+#echo -e "${blue23} • ${blue30} Backup home directory for $TARGET_USER"
+#sudo mkdir -p /_/user-backups
+#sudo chmod -R $TARGET_USER:$TARGET_USER /_/
+#sudo tar jcvf /user-backups/$TARGET_USER-home-directory-backup.tar.bz2 /home/$TARGET_USER
+
+echo -e "${blue23} • ${blue30} Delete encryteruser \
+with home folder ${gray242}"
+deluser --remove-home encryteruser
+
+echo -e "${blue23} • ${blue30} Test that we are ŕoot again ${reset}"
+echo -e " ${gray242}  ®HOME:$HOME"
+pwd
+whoami
+ls
+echo " "
+echo -e " ${orange208} end ${red}:${lightyellow}D  ${reset}"
+echo " "
+
+######## ##    ## ########
+##       ###   ## ##     ##
+##       ####  ## ##     ##
+######   ## ## ## ##     ##
+##       ##  #### ##     ##
+##       ##   ### ##     ##
+######## ##    ## ########
