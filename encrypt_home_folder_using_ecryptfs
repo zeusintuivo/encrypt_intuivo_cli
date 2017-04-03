@@ -144,7 +144,7 @@ check_if_user_exists(){
 
     Sample:
 
-        $THISSCRIPTNAME jesus      <-- This will work on the jesus folder
+        $THISSCRIPTNAME zeus      <-- This will work on the zeus folder
     ${reset}"
         return 1
     }
@@ -356,7 +356,7 @@ sudo -u mrencrypter -H bash << ENCRYPTEREOF
 
     echo "#!/bin/bash
 #
-# @author Jesus Alcaraz <jesusalc@gmail.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 "  > /home/mrencrypter/this_is_what_i_see
@@ -423,7 +423,7 @@ sudo chown -R mrencrypter:mrencrypter /home/mrencrypter/encrypt_home_for_${TARGE
 
 sudo echo "#!/bin/bash
 #
-# @author Jesus Alcaraz <jesusalc@gmail.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 dato=\$(date) ; echo \"time start script:\$dato \" > time.log
@@ -476,7 +476,7 @@ Comment=Remove user mrencrypter
     sudo chown -R ${TARGET_USER}:${TARGET_USER} /home/${TARGET_USER}/remove_mrencrypter.sh
     sudo echo \"#!/bin/bash
 #
-# @author Jesus Alcaraz <jesusalc@gmail.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 $SAYSTUFF_CHUNK_ESCAPED
@@ -579,11 +579,11 @@ function logout() {
 _notify You will be logged OUT . Please then log in to Mr.Encrypter User:mrencrypter with password: \'pass.\' Then execute /home/mrencrypter/encrypt_home_for_${TARGET_USER}.sh from terminal
 
 # Failed because temrinal has not Enviroment vars that are needed for gnome scripst to run. It works if you use sudo -E  the -E  passes the user Environment vars
-# it also works if you do  sudo -E -u jesus gnome-session-quit
+# it also works if you do  sudo -E -u zeus gnome-session-quit
 # to note the difference you have to test
-# sudo -u jesus env
+# sudo -u zeus env
 # vs
-# sudo -E -u jesus env
+# sudo -E -u zeus env
 # where
 # the -E gives more data regarding gnome working environment among other things
 #( command -v logout >/dev/null 2>&1; ) && nohup sudo bash logout </dev/null &>/dev/null & # Ignore --nohup: ignoring input and appending output to 'nohup.out'

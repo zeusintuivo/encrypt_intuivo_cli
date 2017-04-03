@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @author Jesus Alcaraz <jesusalc@gmail.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 dato=$(date) ; echo "time start script:$dato " > time.log
@@ -42,7 +42,7 @@ dato=$(date) ; echo "time start script:$dato " > time.log
 
 
 
-_notify This script will encrypt home folder for jesus
+_notify This script will encrypt home folder for zeus
 
 check_params() {
 
@@ -58,43 +58,43 @@ check_params() {
 check_params $*
 dato=$(date) ; echo " +-- time start zip:$dato " >> time.log
 
-backup_jesus() {
-    _info Backup home directory for jesus
+backup_zeus() {
+    _info Backup home directory for zeus
     sudo mkdir -p /_/user-backups
-    sudo chown -R jesus:jesus /_/user-backups
-    #sudo tar jcvf /_/user-backups/jesus-home-directory-backup.tar.bz2 /home/jesus | split -b 670MB - /_/user-backups/
-    sudo zip -vy -s 670m /_/user-backups/jesus-home-directory-backup.zip -r /home/jesus
+    sudo chown -R zeus:zeus /_/user-backups
+    #sudo tar jcvf /_/user-backups/zeus-home-directory-backup.tar.bz2 /home/zeus | split -b 670MB - /_/user-backups/
+    sudo zip -vy -s 670m /_/user-backups/zeus-home-directory-backup.zip -r /home/zeus
     dato=$(date) ; echo " +-- time end zip:$dato " >> time.log
     wait
-    (( $? != 0 )) && _error_kill Back homedir for jesus did not complete correctly
+    (( $? != 0 )) && _error_kill Back homedir for zeus did not complete correctly
 }
-backup_jesus
+backup_zeus
 
 
 
-encrypt_homedir_and_swap_for_jesus_now() {
+encrypt_homedir_and_swap_for_zeus_now() {
     # REF: https://www.howtogeek.com/116032/how-to-encrypt-your-home-folder-after-installing-ubuntu/
-    _info Killing all processes for jesus.
-    sudo pkill -9 -u jesus
+    _info Killing all processes for zeus.
+    sudo pkill -9 -u zeus
     wait
     dato=$(date) ; echo " +-- time start encrypt:$dato " >> time.log
-    _info Encrypting home folder for: jesus ...This might take a while
-    sudo ecryptfs-migrate-home -u jesus
-    (( $? != 0 )) && _error_kill Encrypting homedir for jesus did not complete correctly
+    _info Encrypting home folder for: zeus ...This might take a while
+    sudo ecryptfs-migrate-home -u zeus
+    (( $? != 0 )) && _error_kill Encrypting homedir for zeus did not complete correctly
     dato=$(date) ; echo " +-- time end encrypt:$dato " >> time.log
     _info Encrypting home swap folder ...This might take a while
     sudo ecryptfs-setup-swap
     (( $? != 0 )) && _error_kill Encrypting swap did not complete correctly
 
 }
-encrypt_homedir_and_swap_for_jesus_now
+encrypt_homedir_and_swap_for_zeus_now
 
-check_if_home_for_jesus_is_encrypted() {
+check_if_home_for_zeus_is_encrypted() {
     # REF: http://askubuntu.com/questions/146511/how-to-check-if-your-home-folder-and-swap-partition-are-encrypted-using-terminal
-    _info Checking if home folder for  jesus is encrypted
-    [ ! -d /home/jesus/.ecryptfs/ ] && _error_kill Encrypted folder was not found
+    _info Checking if home folder for  zeus is encrypted
+    [ ! -d /home/zeus/.ecryptfs/ ] && _error_kill Encrypted folder was not found
 }
-check_if_home_for_jesus_is_encrypted
+check_if_home_for_zeus_is_encrypted
 
 check_if_swap_is_encrypted() {
     # REF: http://askubuntu.com/questions/146511/how-to-check-if-your-home-folder-and-swap-partition-are-encrypted-using-terminal
@@ -104,14 +104,14 @@ check_if_swap_is_encrypted() {
 check_if_swap_is_encrypted
 
 create_self_executing_script_to_delete_mrencrypter() {
-    sudo mkdir -p /home/jesus/.config/autostart/
-    sudo touch /home/jesus/.config/autostart/remove_mrencrypter.desktop
-    sudo chown -R jesus:jesus /home/jesus/.config/autostart/remove_mrencrypter.desktop
+    sudo mkdir -p /home/zeus/.config/autostart/
+    sudo touch /home/zeus/.config/autostart/remove_mrencrypter.desktop
+    sudo chown -R zeus:zeus /home/zeus/.config/autostart/remove_mrencrypter.desktop
 
 
     sudo echo "[Desktop Entry]
 Type=Application
-Exec=gksudo -k -u root /home/jesus/remove_mrencrypter.sh
+Exec=gksudo -k -u root /home/zeus/remove_mrencrypter.sh
 Hidden=false
 NoDisplay=false
 X-GNOME-Autostart-enabled=true
@@ -119,16 +119,16 @@ Name[en_US]=Remove user mrencrypter
 Name=Remove user mrencrypter
 Comment[en_US]=Remove user mrencrypter
 Comment=Remove user mrencrypter
-    " > /home/jesus/.config/autostart/remove_mrencrypter.desktop
+    " > /home/zeus/.config/autostart/remove_mrencrypter.desktop
 
 
     # Create remove mrencrypter script
-    sudo touch /home/jesus/remove_mrencrypter.sh
-    sudo chmod +x /home/jesus/remove_mrencrypter.sh
-    sudo chown -R jesus:jesus /home/jesus/remove_mrencrypter.sh
+    sudo touch /home/zeus/remove_mrencrypter.sh
+    sudo chmod +x /home/zeus/remove_mrencrypter.sh
+    sudo chown -R zeus:zeus /home/zeus/remove_mrencrypter.sh
     sudo echo "#!/bin/bash
 #
-# @author Jesus Alcaraz <jesusalc@gmail.com>
+# @author Zeus Intuivo <zeus@intuivo.com>
 #
 #
 
@@ -186,20 +186,20 @@ _info Deleting user mrencrypter with its home folder
 
 
 _notify Self remove these scripts
-nohup rm /home/mrencrypter/.config/autostart/encrypt_home_for_jesus.desktop
-nohup rm /home/jesus/remove_mrencrypter.sh
+nohup rm /home/mrencrypter/.config/autostart/encrypt_home_for_zeus.desktop
+nohup rm /home/zeus/remove_mrencrypter.sh
 
 
-" > /home/jesus/remove_mrencrypter.sh
+" > /home/zeus/remove_mrencrypter.sh
 
 }
 create_self_executing_script_to_delete_mrencrypter
 dato=$(date) ; echo "time end script:$dato " >> time.log
 logout_current_user_mrencrypter() {
-    _notify You will be log out of this user. Then DO NOT TURN OFF YOUR BOX, Login to your user jesus for encryption to finish
+    _notify You will be log out of this user. Then DO NOT TURN OFF YOUR BOX, Login to your user zeus for encryption to finish
     nohup gnome-session-save --force-logout
     wait
-    #sudo pkill -9 -u jesus
+    #sudo pkill -9 -u zeus
     wait
 }
 logout_current_user_mrencrypter

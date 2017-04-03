@@ -119,7 +119,7 @@ login as the new user and logout install ${reset}"
 
     Sample:
 
-        $THISSCRIPTNAME jesus      <-- This will work on the jesus folder
+        $THISSCRIPTNAME zeus      <-- This will work on the zeus folder
     ${reset}"
         exit 130
     }
