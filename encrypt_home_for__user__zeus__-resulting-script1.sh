@@ -204,5 +204,128 @@ logout_current_user_mrencrypter() {
 }
 logout_current_user_mrencrypter
 
+exit
+##LOG
+➜  encrypt_intuivo_cli git:(master) ✗ date
+Fr 5. Mai 09:15:25 CEST 2017
+
+## LOG
+ This script will encrypt home folder for zeus
+
+ •  Checking for Elevated Root Permisions
+ •  Checking if you are root
+ •  Backup home directory for zeus
+  adding: home/zeus/    (in=0) (out=0) (stored 0%)
+  adding: home/zeus/.profile    (in=655) (out=378) (deflated 42%)
+  adding: home/zeus/.bash_logout    (in=220) (out=158) (deflated 28%)
+  adding: home/zeus/.bashrc (in=3771) (out=1740) (deflated 54%)
+total bytes=4646, compressed=2276 -> 51% savings
+ •  Killing all processes for zeus.
+ •  Encrypting home folder for: zeus ...This might take a while
+INFO:  Checking disk space, this may take a few moments.  Please be patient.
+INFO:  Checking for open files in /home/zeus
+lsof: WARNING: can't stat() fuse.gvfsd-fuse file system /run/user/1000/gvfs
+      Output information may be incomplete.
+Enter your login passphrase [zeus]:
+
+************************************************************************
+YOU SHOULD RECORD YOUR MOUNT PASSPHRASE AND STORE IT IN A SAFE LOCATION.
+  ecryptfs-unwrap-passphrase ~/.ecryptfs/wrapped-passphrase
+THIS WILL BE REQUIRED IF YOU NEED TO RECOVER YOUR DATA AT A LATER TIME.
+************************************************************************
 
 
+Done configuring.
+
+chown: cannot access '/dev/shm/.ecryptfs-zeus': No such file or directory
+INFO:  Encrypted home has been set up, encrypting files now...this may take a while.
+sending incremental file list
+./
+.bash_logout
+            220 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=2/4)
+.bashrc
+          3,771 100%    3.60MB/s    0:00:00 (xfr#2, to-chk=1/4)
+.profile
+            655 100%  639.65kB/s    0:00:00 (xfr#3, to-chk=0/4)
+Could not unlink the key(s) from your keying. Please use `keyctl unlink` if you wish to remove the key(s). Proceeding with umount.
+
+========================================================================
+Some Important Notes!
+
+ 1. The file encryption appears to have completed successfully, however,
+    zeus MUST LOGIN IMMEDIATELY, _BEFORE_THE_NEXT_REBOOT_,
+    TO COMPLETE THE MIGRATION!!!
+
+ 2. If zeus can log in and read and write their files, then the migration is complete,
+    and you should remove /home/zeus.s0yGJZ9c.
+    Otherwise, restore /home/zeus.s0yGJZ9c back to /home/zeus.
+
+ 3. zeus should also run 'ecryptfs-unwrap-passphrase' and record
+    their randomly generated mount passphrase as soon as possible.
+
+ 4. To ensure the integrity of all encrypted data on this system, you
+    should also encrypt swap space with 'ecryptfs-setup-swap'.
+========================================================================
+
+ •  Encrypting home swap folder ...This might take a while
+
+WARNING:
+An encrypted swap is required to help ensure that encrypted files are not leaked to disk in an unencrypted format.
+
+HOWEVER, THE SWAP ENCRYPTION CONFIGURATION PRODUCED BY THIS PROGRAM WILL BREAK HIBERNATE/RESUME ON THIS SYSTEM!
+
+NOTE: Your suspend/resume capabilities will not be affected.
+
+Do you want to proceed with encrypting your swap? [y/N]: y
+
+INFO: Setting up swap: [/dev/dm-1]
+WARNING: Commented out your unencrypted swap from /etc/fstab
+swapon: stat of /dev/mapper/cryptswap1 failed: No such file or directory
+
+  ERROR!  Encrypting swap did not complete correctly !
+  Killing the script
+
+➜  encrypt_intuivo_cli git:(master) ✗ cat /etc/crypttab
+# <target name> <source device>     <key file>  <options>
+cryptswap1 UUID=d7b74486-fd93-4d74-870f-4261a4826b5d /dev/urandom swap,offset=1024,cipher=aes-xts-plain64
+➜  encrypt_intuivo_cli git:(master) ✗ ls -l /dev/disk/by-uuid/
+total 0
+lrwxrwxrwx 1 root root 10 Mai  2 14:28 08391481-64df-45b0-bbf0-90ccf3ca1bb7 -> ../../sda1
+lrwxrwxrwx 1 root root 10 Mai  2 14:28 3a67710c-2733-4345-8c62-bc512e988556 -> ../../dm-0
+lrwxrwxrwx 1 root root 10 Mai  5 09:12 d7b74486-fd93-4d74-870f-4261a4826b5d -> ../../dm-1
+➜  encrypt_intuivo_cli git:(master) ✗ cat /etc/fstab
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/dev/mapper/ubuntu--gnome--vg-root /               ext4    errors=remount-ro 0       1
+# /boot was on /dev/sda1 during installation
+UUID=08391481-64df-45b0-bbf0-90ccf3ca1bb7 /boot           ext2    defaults        0       2
+#/dev/mapper/ubuntu--gnome--vg-swap_1 none            swap    sw              0       0
+/dev/mapper/cryptswap1 none swap sw 0 0
+➜  encrypt_intuivo_cli git:(master) ✗
+
+
+
+CHROME PAGES:
+
+https://github.com/webpack/webpack/issues/1736
+https://github.com/webpack/webpack/issues/2771
+https://github.com/bestander/uglify-loader
+file:///_/journals/weise/DGT-99_minimal_form_2/v3_form_work_on_chrome_files/public/index.html
+https://github.com/babel/babel-loader/issues/299
+http://mimosa.io/configuration.html#watch
+http://underscorejs.org/#template
+https://bootstrapbay.com/blog/bootstrap-button-styles/
+http://codepen.io/anon/pen/MmvdwL
+https://css2sass.herokuapp.com/
+http://edgeguides.rubyonrails.org/asset_pipeline.html
+https://cdnjs.com/libraries/jquery
+https://tympanus.net/Development/TextInputEffects/index2.html
+https://carbonads.net/
+https://tympanus.net/codrops/adpacks/demoadpacks.css
+https://tympanus.net/Tutorials/CustomDropDownListStyling/index.html
+https://askubuntu.com/questions/462775/swap-not-working-on-clean-14-04-install-using-encrypted-home
